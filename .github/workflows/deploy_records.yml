@@ -30,7 +30,7 @@ jobs:
 
       - name: Create credentials file
         run: |
-          echo '{"gcore":{"TYPE":"GCORE","apikey":"${{ secrets.GCORE_API_KEY }}"}}' > ./creds.json
+          echo '{"gcore":{"TYPE":"GCORE","apikey":"${{ secrets.GCORE_API_KEY }}"}}' > ./scripts/creds.json
           
       - name: Run verification from DNSControl
         run: |
@@ -38,4 +38,4 @@ jobs:
           
       - name: Push records to DNSControl
         run: |
-          dnscontrol push --config scripts/dnsconfig.js --creds ./creds.json
+          dnscontrol push --config scripts/dnsconfig.js --creds ./scripts/creds.json
