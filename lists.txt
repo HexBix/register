@@ -1,4 +1,3 @@
-@: "active"
 _dmarc: "active"
 admin: "active"
 blog: "active"
