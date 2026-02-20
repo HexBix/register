@@ -1,5 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+let JSON5;
+try {
+    JSON5 = require('json5');
+} catch (e) {
+    console.error(':ERROR: json5 module not found. Please install dependencies before running verification.');
+    process.exit(1);
+}
 
 // Function to validate email format
 function isValidEmail(email) {
@@ -179,6 +186,66 @@ function validateJson(jsonData, filePath) {
     return errors;
 }
 
+// Attempt to auto-correct minor structural issues and return whether a change was made
+function autoFix(jsonData, filePath) {
+    let modified = false;
+    const fileName = path.basename(filePath);
+    const subFromName = fileName.split('.')[0];
+
+    // Remove unsupported fields
+    if (Object.prototype.hasOwnProperty.call(jsonData, 'proxied')) {
+        delete jsonData.proxied;
+        modified = true;
+    }
+
+    // Ensure required top-level fields exist with defaults
+    if (!jsonData.subdomain || typeof jsonData.subdomain !== 'string') {
+        jsonData.subdomain = subFromName || '';
+        modified = true;
+    }
+    if (!jsonData.domain || jsonData.domain !== 'is-app.top') {
+        jsonData.domain = 'is-app.top';
+        modified = true;
+    }
+    if (!jsonData.public_email) {
+        jsonData.public_email = 'contact@is-app.top';
+        modified = true;
+    }
+    if (!jsonData.description) {
+        jsonData.description = 'Reserved subdomain';
+        modified = true;
+    }
+    if (!jsonData.records || typeof jsonData.records !== 'object') {
+        jsonData.records = {};
+        modified = true;
+    }
+
+    // Normalize record shapes
+    const normalizeArray = (v) => Array.isArray(v) ? v : (v === undefined || v === null ? [] : [v]);
+    const rec = jsonData.records;
+    if (rec.CNAME !== undefined && !Array.isArray(rec.CNAME)) {
+        rec.CNAME = normalizeArray(rec.CNAME);
+        modified = true;
+    }
+    if (rec.A !== undefined && !Array.isArray(rec.A)) {
+        rec.A = normalizeArray(rec.A); modified = true;
+    }
+    if (rec.AAAA !== undefined && !Array.isArray(rec.AAAA)) {
+        rec.AAAA = normalizeArray(rec.AAAA); modified = true;
+    }
+    if (rec.NS !== undefined && !Array.isArray(rec.NS)) {
+        rec.NS = normalizeArray(rec.NS); modified = true;
+    }
+    if (rec.MX !== undefined && !Array.isArray(rec.MX)) {
+        rec.MX = normalizeArray(rec.MX); modified = true;
+    }
+    if (rec.TXT !== undefined && !Array.isArray(rec.TXT)) {
+        rec.TXT = normalizeArray(rec.TXT); modified = true;
+    }
+
+    return modified;
+}
+
 function main() {
     // An absolute path to the 'domains' directory for portability
     const domainsPath = path.join(__dirname, '..', 'domains');
@@ -218,7 +285,24 @@ function main() {
 
     // Validate each JSON file
     allFiles.forEach(filePath => {
-        const jsonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        let jsonData;
+        try {
+            // Use JSON5 for tolerant parsing (comments, trailing commas, etc.)
+            jsonData = JSON5.parse(raw);
+        } catch (e) {
+            allErrors.push(`File: ${filePath} - :ERROR: Unable to parse file with JSON5: ${e.message}`);
+            return;
+        }
+
+        // Try auto-fix, then write back normalized JSON if modified or if the JSON5 parse differs from JSON.stringify
+        const wasModified = autoFix(jsonData, filePath);
+        const normalized = JSON.stringify(jsonData, null, 4) + '\n';
+        if (wasModified || normalized.trim() !== raw.trim()) {
+            fs.writeFileSync(filePath, normalized, 'utf-8');
+            console.log(`Auto-fixed ${filePath}`);
+        }
+
         const errors = validateJson(jsonData, filePath);
 
         if (errors.length > 0) {
