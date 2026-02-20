@@ -1,6 +1,1 @@
-{
-  "gcore": {
-    "TYPE": "GCORE",
-    "api-key": "$GCORE_API_KEY"
-  }
-}
+{"cloudflare":{"TYPE":"CLOUDFLAREAPI","apitoken":"$CLOUDFLARE_API_TOKEN"}}
