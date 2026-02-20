@@ -1,0 +1,13 @@
+{
+  "subdomain": "dashboard",
+  "domain": "is-app.top",
+  "public_email": "contact@is-app.top",
+  "github_username": "thedev-me",
+  "description": "Reserved subdomain",
+  "records": {
+    "CNAME": [
+      "is-app.top"
+    ]
+  },
+  "proxied": true
+}
