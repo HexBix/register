@@ -70,6 +70,12 @@ try {
       } else if (map[name] === 'pending') {
         // keep pending
       }
+    } else if (status === 'D') {
+      // Remove from list if present (deleted or rejected)
+      if (map.hasOwnProperty(name)) {
+        delete map[name];
+        modified = true;
+      }
     }
   }
 
@@ -83,4 +89,3 @@ try {
   console.error('Failed updating lists.txt:', e.message);
   process.exit(1);
 }
-
