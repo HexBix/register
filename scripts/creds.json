@@ -1,6 +1,6 @@
 {
   "gcore": {
     "TYPE": "GCORE",
-    "apikey": "$GCORE_API_KEY" 
+    "api-key": "$GCORE_API_KEY"
   }
 }
