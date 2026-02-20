@@ -30,16 +30,16 @@ jobs:
 
       - name: Create credentials file
         run: |
-          echo '{"gcore":{"TYPE":"GCORE","api-key":"$GCORE_API_KEY"}}' > ./scripts/creds.json
+          echo '{"cloudflare":{"TYPE":"CLOUDFLAREAPI","apitoken":"$CLOUDFLARE_API_TOKEN"}}' > ./scripts/creds.json
           
       - name: Run verification from DNSControl
         env:
-          GCORE_API_KEY: ${{ secrets.GCORE_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           dnscontrol check --config scripts/dnsconfig.js
           
       - name: Push records to DNSControl
         env:
-          GCORE_API_KEY: ${{ secrets.GCORE_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           dnscontrol push --config scripts/dnsconfig.js --creds ./scripts/creds.json
