@@ -28,14 +28,14 @@ jobs:
           tar -xzf dnscontrol.tar.gz
           sudo mv dnscontrol /usr/local/bin/
 
-      - name: Create credentials file
-        run: |
-          echo '{"gcore":{"TYPE":"GCORE","apikey":"${{ secrets.GCORE_API_KEY }}"}}' > ./scripts/creds.json
-          
       - name: Run verification from DNSControl
+        env:
+          GCORE_API_KEY: ${{ secrets.GCORE_API_KEY }}
         run: |
           dnscontrol check --config scripts/dnsconfig.js
           
       - name: Push records to DNSControl
+        env:
+          GCORE_API_KEY: ${{ secrets.GCORE_API_KEY }}
         run: |
           dnscontrol push --config scripts/dnsconfig.js
