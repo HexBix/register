@@ -31,8 +31,10 @@ jobs:
 
       - name: Create credentials file
         run: |
-          echo '{"gcore":{"TYPE":"GCORE","apikey":"${{ secrets.GCORE_API_KEY }}"}}' > ./scripts/creds.json
+          echo '{"gcore":{"TYPE":"GCORE","api-key":"$GCORE_API_KEY"}}' > ./scripts/creds.json
           
       - name: Run verification from DNSControl
+        env:
+          GCORE_API_KEY: ${{ secrets.GCORE_API_KEY }}
         run: |
           dnscontrol check --config scripts/dnsconfig.js
