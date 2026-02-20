@@ -1,21 +1,26 @@
 const fs = require('fs');
 const path = require('path');
 
+// Function to validate email format
 function isValidEmail(email) {
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return pattern.test(email);
 }
 
+// Verify subdomain names match in both file name and in JSON content.
 function verifySubdomainMatch(subdomain, filePath) {    
     const fileName = path.basename(filePath);
     const fileNameSubdomain = fileName.split('.')[0];
 
+    // Special cases that should bypass the subdomain match check. Important for the main domain and for email support
     const specialCases = ["purelymail1._domainkey", "purelymail2._domainkey", "purelymail3._domainkey"];
 
+    // Check if the subdomain is in the list of special cases
     if (specialCases.includes(subdomain.toLowerCase())) {
         return true;
     }
 
+    // Check if the filename subdomain matches the provided subdomain
     if (fileNameSubdomain.toLowerCase() === subdomain.toLowerCase()) {
         return true;
     }
@@ -26,8 +31,10 @@ function verifySubdomainMatch(subdomain, filePath) {
 function verifyFileFormat(fileName) {
     const pattern = /^(@|_dmarc|[a-zA-Z0-9\-]+|purelymail[1-3]\._domainkey)\.is-app\.top\.json$/; // Expression to validate file name.
 
+    // Special cases that should bypass the 4-part check. Important for the main domain and for email support
     const specialCases = ["@", "_dmarc", "purelymail1._domainkey", "purelymail2._domainkey", "purelymail3._domainkey"];
 
+    // Check if the file name matches any of the special cases
     for (let i = 0; i < specialCases.length; i++) {
         if (fileName.startsWith(specialCases[i] + ".is-app.top.json")) {
             return pattern.test(fileName);
@@ -35,6 +42,7 @@ function verifyFileFormat(fileName) {
     }
 
     const fileNameParts = fileName.split('.');
+    // Expecting exactly 4 chunks after splitting AND to match the expression
     if (fileNameParts.length !== 4 || !pattern.test(fileName)) {
         return false;
     }
@@ -42,42 +50,50 @@ function verifyFileFormat(fileName) {
     return true;
 }
 
+// Helper function to validate IP addresses
 function isValidIP(ip) {
     const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
     const ipv6Pattern = /^([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}$/;
     return ipv4Pattern.test(ip) || ipv6Pattern.test(ip);
 }
 
+// Helper function to validate domain names
 function isValidDomain(domain) {
     const pattern = /^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/;
     return pattern.test(domain);
 }
 
+// Function to validate the JSON data, returns array of errors or empty array if no errors
 function validateJson(jsonData, filePath) {
     const errors = [];
 
+    // Validate JSON name format (subdomainName.is-app.top.json)
     const fileName = path.basename(filePath);
     if (!verifyFileFormat(fileName)) {
         console.log(fileName)
         errors.push(`:ERROR: Only third-level domains are supported. Rename your JSON to this format: 'SUBDOMAIN.is-app.top.json'.`);
     }
 
+    // Validate subdomain
     const subdomain = jsonData.subdomain || '';
     if (!subdomain) {
         errors.push(':ERROR: Subdomain is empty.'); 
     } else if (subdomain.includes('*')) {
         errors.push(':ERROR: Subdomain cannot contain wildcards.');
     } else {
+        // Verify subdomain match
         if (!verifySubdomainMatch(subdomain, filePath)) {
             errors.push(':ERROR: Ensure the subdomain specified in the JSON file matches the subdomain present in the file name.');
         }
     }
 
+    // Validate domain
     const domain = jsonData.domain || '';
     if (!domain || domain !== "is-app.top") {
         errors.push(':ERROR: Domain is invalid.');
     }
 
+    // Validate public email or contact info
     const publicEmail = jsonData.public_email || '';
     const contactInfo = jsonData.email_or_discord || '';
     if (publicEmail) {
@@ -89,11 +105,13 @@ function validateJson(jsonData, filePath) {
         errors.push(':ERROR: Please provide your contact info in the JSON.');
     }
 
+    // Validate GitHub user
     const github_username = jsonData.github_username || '';
     if (!github_username ) {
         errors.push(':ERROR: Please provide your GitHub username in the JSON.');
     }
 
+    // Validate description
     const description = jsonData.description || '';
     if (!description) {
         errors.push(':ERROR: Description is empty.');
@@ -101,7 +119,9 @@ function validateJson(jsonData, filePath) {
         errors.push(':ERROR: Description is too short. Please provide a description of your website.');
     }
 
+    // Validate records
     const records = jsonData.records || {};
+    // Check typeof 
     if (typeof records !== 'object') {
         errors.push(':ERROR: Records must be an object.');
     } else {
@@ -159,65 +179,6 @@ function validateJson(jsonData, filePath) {
     return errors;
 }
 
-// Attempt to auto-correct minor structural issues and return whether a change was made
-function autoFix(jsonData, filePath) {
-    let modified = false;
-    const fileName = path.basename(filePath);
-    const subFromName = fileName.split('.')[0];
-
-    // Keep proxied field if provided (no deletion)
-    if (Object.prototype.hasOwnProperty.call(jsonData, 'proxied')) {
-        // No operation needed, just ensuring we don't delete it
-    }
-
-    // Ensure required top-level fields exist with defaults
-    if (!jsonData.subdomain || typeof jsonData.subdomain !== 'string') {
-        jsonData.subdomain = subFromName || '';
-        modified = true;
-    }
-    if (!jsonData.domain || jsonData.domain !== 'is-app.top') {
-        jsonData.domain = 'is-app.top';
-        modified = true;
-    }
-    if (!jsonData.public_email) {
-        jsonData.public_email = 'contact@is-app.top';
-        modified = true;
-    }
-    if (!jsonData.description) {
-        jsonData.description = 'Reserved subdomain';
-        modified = true;
-    }
-    if (!jsonData.records || typeof jsonData.records !== 'object') {
-        jsonData.records = {};
-        modified = true;
-    }
-
-    // Normalize record shapes
-    const normalizeArray = (v) => Array.isArray(v) ? v : (v === undefined || v === null ? [] : [v]);
-    const rec = jsonData.records;
-    if (rec.CNAME !== undefined && !Array.isArray(rec.CNAME)) {
-        rec.CNAME = normalizeArray(rec.CNAME);
-        modified = true;
-    }
-    if (rec.A !== undefined && !Array.isArray(rec.A)) {
-        rec.A = normalizeArray(rec.A); modified = true;
-    }
-    if (rec.AAAA !== undefined && !Array.isArray(rec.AAAA)) {
-        rec.AAAA = normalizeArray(rec.AAAA); modified = true;
-    }
-    if (rec.NS !== undefined && !Array.isArray(rec.NS)) {
-        rec.NS = normalizeArray(rec.NS); modified = true;
-    }
-    if (rec.MX !== undefined && !Array.isArray(rec.MX)) {
-        rec.MX = normalizeArray(rec.MX); modified = true;
-    }
-    if (rec.TXT !== undefined && !Array.isArray(rec.TXT)) {
-        rec.TXT = normalizeArray(rec.TXT); modified = true;
-    }
-
-    return modified;
-}
-
 function main() {
     // An absolute path to the 'domains' directory for portability
     const domainsPath = path.join(__dirname, '..', 'domains');
@@ -257,24 +218,7 @@ function main() {
 
     // Validate each JSON file
     allFiles.forEach(filePath => {
-        const raw = fs.readFileSync(filePath, 'utf-8');
-        let jsonData;
-        try {
-            // Use JSON5 for tolerant parsing (comments, trailing commas, etc.)
-            jsonData = JSON5.parse(raw);
-        } catch (e) {
-            allErrors.push(`File: ${filePath} - :ERROR: Unable to parse file with JSON5: ${e.message}`);
-            return;
-        }
-
-        // Try auto-fix, then write back normalized JSON if modified or if the JSON5 parse differs from JSON.stringify
-        const wasModified = autoFix(jsonData, filePath);
-        const normalized = JSON.stringify(jsonData, null, 4) + '\n';
-        if (wasModified || normalized.trim() !== raw.trim()) {
-            fs.writeFileSync(filePath, normalized, 'utf-8');
-            console.log(`Auto-fixed ${filePath}`);
-        }
-
+        const jsonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
         const errors = validateJson(jsonData, filePath);
 
         if (errors.length > 0) {
