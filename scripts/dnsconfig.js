@@ -1,6 +1,6 @@
 var REG_NONE = NewRegistrar("none");
 var DNS_BIND = NewDnsProvider("gcore", {
-  "apikey": process.env["GCORE_API_KEY"]
+  "apikey": process.env.GCORE_API_KEY
 });
 var DOMAIN_NAME = "is-app.top"
 
