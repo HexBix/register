@@ -2,7 +2,7 @@
   "subdomain": "@",
   "domain": "is-app.top",
   "public_email": "contact@is-app.top",
-  "github_username": "thedev-me",
+  "github_username": "is-app-top",
   "description": "Reserved subdomain",
   "records": {
     "A": [
@@ -12,12 +12,13 @@
       "185.199.111.153"
     ],
     "MX": [
-      "mailserver.purelymail.com"
+      "mx.zoho.com",
+      "mx2.zoho.com",
+      "mx3.zoho.com"
     ],
     "TXT": [
       "zoho-verification=zb69372067.zmverify.zoho.com",
-      "v=spf1 include:_spf.purelymail.com ~all"
+      "v=spf1 include:zohomail.com ~all"
     ]
   },
-  "proxied": true
 }
