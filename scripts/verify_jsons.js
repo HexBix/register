@@ -171,10 +171,10 @@ function validateJson(jsonData, filePath) {
         }
     }
 
-    // Validate proxied field
-    if (typeof jsonData.proxied !== 'boolean') {
-        errors.push(':ERROR: Proxied field must be a boolean (true or false).');
-    }
+    // Validate proxied field - REMOVED as Gcore does not support proxy
+    // if (typeof jsonData.proxied !== 'boolean') {
+    //    errors.push(':ERROR: Proxied field must be a boolean (true or false).');
+    // }
 
     return errors;
 }
