@@ -24,6 +24,40 @@ function extractName(filePath) {
   return parts[0];
 }
 
+function listExistingNamesWithRecords() {
+  const domainsDir = path.join(process.cwd(), 'domains');
+  const names = new Set();
+  function walk(dir) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(p);
+      } else if (e.isFile() && e.name.endsWith('.json')) {
+        const base = path.basename(p);
+        const parts = base.split('.');
+        if (parts.length >= 4 && parts.slice(-3).join('.') === 'is-app.top.json') {
+          try {
+            const raw = fs.readFileSync(p, 'utf8');
+            const json = JSON.parse(raw);
+            const recs = json.records || {};
+            const hasAnyRecord =
+              recs &&
+              typeof recs === 'object' &&
+              Object.keys(recs).some((k) => Array.isArray(recs[k]) && recs[k].length > 0);
+            if (hasAnyRecord) {
+              names.add(parts[0]);
+            }
+          } catch {}
+        }
+      }
+    }
+  }
+  walk(domainsDir);
+  return Array.from(names);
+}
+
 function readListFile(listPath) {
   if (!fs.existsSync(listPath)) return {};
   const lines = fs.readFileSync(listPath, 'utf8').split('\n').map(l => l.trim()).filter(Boolean);
@@ -50,29 +84,19 @@ try {
     process.exit(0);
   }
 
-  const changed = getChangedDomainFilesFromPush(before, after);
-  if (changed.length === 0) {
-    console.log('No domain JSON changes detected on push. Skipping lists.txt update.');
-    process.exit(0);
-  }
-
   const listPath = path.join(process.cwd(), 'lists.txt');
-  const map = readListFile(listPath);
+  const oldMap = readListFile(listPath);
 
-  let modified = false;
-  for (const { status, filePath } of changed) {
-    const name = extractName(filePath);
-    if (!name) continue;
-    if (status === 'A' || status === 'M') {
-      if (map[name] !== 'active') {
-        map[name] = 'active';
-        modified = true;
-      }
-    }
-  }
+  // Recompute the map purely from the current repo contents.
+  const existingNames = listExistingNamesWithRecords();
+  const newMap = {};
+  for (const name of existingNames) newMap[name] = 'active';
 
-  if (modified) {
-    writeListFile(listPath, map);
+  // Compare old and new maps
+  const oldStr = JSON.stringify(oldMap);
+  const newStr = JSON.stringify(newMap);
+  if (oldStr !== newStr) {
+    writeListFile(listPath, newMap);
     console.log('lists.txt updated to active.');
   } else {
     console.log('lists.txt not changed.');
@@ -81,4 +105,3 @@ try {
   console.error('Failed updating lists.txt (main):', e.message);
   process.exit(1);
 }
-
