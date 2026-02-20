@@ -34,8 +34,8 @@ jobs:
           
       - name: Run verification from DNSControl
         run: |
-          dnscontrol check --config scripts/dnsconfig.js
+          dnscontrol check --config scripts/dnsconfig.js --creds ./creds.json
           
       - name: Push records to DNSControl
         run: |
-          dnscontrol push --config scripts/dnsconfig.js
+          dnscontrol push --config scripts/dnsconfig.js --creds ./creds.json
