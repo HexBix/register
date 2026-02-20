@@ -20,5 +20,5 @@
       "zoho-verification=zb69372067.zmverify.zoho.com",
       "v=spf1 include:zohomail.com ~all"
     ]
-  },
+  }
 }
