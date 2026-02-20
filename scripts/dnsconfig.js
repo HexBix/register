@@ -1,5 +1,5 @@
 var REG_NONE = NewRegistrar("none");
-var DNS_BIND = NewDnsProvider("gcore");
+var DNS_BIND = NewDnsProvider("cloudflare");
 var DOMAIN_NAME = "is-app.top"
 
 function createSubdomainsObject(jsonsPath) {
@@ -33,21 +33,34 @@ for (var i = 0; i < subdomains.length; i++) {
   var subdomainData = subdomains[i].data
   var subdomain = subdomainData.subdomain
   
+  var proxied = !!subdomainData.proxied
   // A Records
   if (subdomainData.records.A) {
     for (var ipv4 in subdomainData.records.A) {
-      records.push(A(subdomain, subdomainData.records.A[ipv4]));
+      if (proxied) {
+        records.push(A(subdomain, subdomainData.records.A[ipv4], CF_PROXY_ON));
+      } else {
+        records.push(A(subdomain, subdomainData.records.A[ipv4], CF_PROXY_OFF));
+      }
     }
   }
   // AAAA Records
   if (subdomainData.records.AAAA) {
     for (var ipv6 in subdomainData.records.AAAA) {
-      records.push(AAAA(subdomain, subdomainData.records.AAAA[ipv6]));
+      if (proxied) {
+        records.push(AAAA(subdomain, subdomainData.records.AAAA[ipv6], CF_PROXY_ON));
+      } else {
+        records.push(AAAA(subdomain, subdomainData.records.AAAA[ipv6], CF_PROXY_OFF));
+      }
     }
   }
   // CNAME Records
   if (subdomainData.records.CNAME) {
-      records.push(CNAME(subdomain, subdomainData.records.CNAME + "."));
+      if (proxied) {
+        records.push(CNAME(subdomain, subdomainData.records.CNAME + ".", CF_PROXY_ON));
+      } else {
+        records.push(CNAME(subdomain, subdomainData.records.CNAME + ".", CF_PROXY_OFF));
+      }
   }
   // NS Records
   if (subdomainData.records.NS) {
