@@ -25,7 +25,7 @@ function createSubdomainsObject(jsonsPath) {
 }
 
 // Create an object of all JSONs
-var subdomains = createSubdomainsObject('./domains')
+var subdomains = createSubdomainsObject('../domains')
 
 var records = [];
 // Parse all JSON files and generate DNS resource records for DNSControl
