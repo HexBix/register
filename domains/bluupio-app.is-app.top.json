@@ -1,0 +1,11 @@
+{
+  "subdomain": "bluupio-app",
+  "domain": "is-app.top",
+  "email_or_discord": "bluupio@proton.me",
+  "github_username": "bluupio",
+  "description": "For my app",
+
+  "records": {
+    "NS":    ["ns1.desec.io", "ns2.desec.org"]
+  }
+}
