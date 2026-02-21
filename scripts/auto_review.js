@@ -27,9 +27,11 @@ try {
         
         const [status, filePath] = line.split('\t');
         
-        // Only allow changes in domains/reserved/*.json
+        // Only allow changes in domains/*.json and domains/reserved/*.json
         // If any other file is changed, manual review is required.
-        if (!filePath.startsWith('domains/reserved/') || !filePath.endsWith('.json')) {
+        const isDomainFile = filePath.startsWith('domains/') && filePath.endsWith('.json');
+        
+        if (!isDomainFile) {
             console.log(`Non-domain file changed: ${filePath}`);
             shouldApprove = false;
             break;
@@ -75,11 +77,29 @@ try {
     }
 
     // Output result for GitHub Actions
-    const outputValue = (shouldApprove && hasModifications) ? 'true' : 'false';
-    console.log(`Approve: ${outputValue}`);
-    
-    if (process.env.GITHUB_OUTPUT) {
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `approve=${outputValue}\n`);
+    if (shouldApprove && hasModifications) {
+        console.log("Changes verified. Auto-approving and merging PR...");
+        
+        const prNumber = process.env.PR_NUMBER;
+        if (!prNumber) {
+            console.error("PR_NUMBER environment variable is missing.");
+            process.exit(1);
+        }
+
+        try {
+            // Approve the PR
+            execSync(`gh pr review ${prNumber} --approve --body "Auto-approved: Changes verified."`, { stdio: 'inherit' });
+            
+            // Merge the PR
+            execSync(`gh pr merge ${prNumber} --merge --delete-branch`, { stdio: 'inherit' });
+            
+            console.log("PR approved and merged successfully.");
+        } catch (error) {
+            console.error(`Failed to approve/merge PR: ${error.message}`);
+            process.exit(1);
+        }
+    } else {
+        console.log("Changes do not meet auto-approval criteria or no modifications found.");
     }
 
 } catch (error) {
