@@ -29,10 +29,10 @@ function verifySubdomainMatch(subdomain, filePath) {
 }
 
 function verifyFileFormat(fileName) {
-    const pattern = /^(@|[a-zA-Z0-9\-]+)\.is-app\.top\.json$/; 
+    const pattern = /^(@|[a-zA-Z0-9\-]+|_gh-is-app-top-o)\.is-app\.top\.json$/; 
 
     // Special cases that should bypass the 4-part check. Important for the main domain and for email support
-    const specialCases = ["@", "_dmarc", "_gh-is-app-top-o"];
+    const specialCases = ["@", "_gh-is-app-top-o"];
 
     // Check if the file name matches any of the special cases
     for (let i = 0; i < specialCases.length; i++) {
