@@ -7,14 +7,16 @@ try {
     // Ensure we have the base ref available for comparison
     console.log(`Fetching origin/${baseRef}...`);
     try {
-        execSync(`git fetch origin ${baseRef} --depth=1`);
+        execSync(`git fetch origin ${baseRef}`);
     } catch (e) {
         console.warn("Fetch failed, might already have history.");
     }
 
     // Get list of changed files
     console.log(`Comparing HEAD with origin/${baseRef}...`);
-    const diffCmd = `git diff --name-status origin/${baseRef}...HEAD`;
+    // Use --name-status to see modified files
+    // Use origin/${baseRef} directly instead of ... to avoid merge-base issues if history is shallow
+    const diffCmd = `git diff --name-status origin/${baseRef} HEAD`;
     const diffOutput = execSync(diffCmd).toString();
     
     const lines = diffOutput.trim().split('\n');
