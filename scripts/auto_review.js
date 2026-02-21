@@ -92,6 +92,11 @@ try {
             // Approve the PR
             execSync(`gh pr review ${prNumber} --approve --body "Auto-approved: Changes verified."`, { stdio: 'inherit' });
             console.log("PR approved successfully.");
+            
+            // Set output for next step
+            if (process.env.GITHUB_OUTPUT) {
+                fs.appendFileSync(process.env.GITHUB_OUTPUT, 'approved=true\n');
+            }
         } catch (error) {
             console.error(`Failed to approve PR: ${error.message}`);
             process.exit(1);
