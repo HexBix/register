@@ -94,9 +94,15 @@ try {
             
             // Merge the PR (using squash merge to keep history clean, and --admin to bypass rules if needed/possible)
             // Note: --auto enables auto-merge if checks are pending.
-            execSync(`gh pr merge ${prNumber} --squash --delete-branch --auto`, { stdio: 'inherit' });
-            
-            console.log("PR approved and merged successfully.");
+            try {
+                execSync(`gh pr merge ${prNumber} --squash --delete-branch --auto`, { stdio: 'inherit' });
+                console.log("PR auto-merge enabled/merged successfully.");
+            } catch (mergeError) {
+                // Fallback: If auto-merge is not allowed/enabled in settings, try direct merge (only works if checks pass immediately)
+                console.warn("Auto-merge failed (maybe not enabled in repo settings?). Trying direct merge...");
+                execSync(`gh pr merge ${prNumber} --squash --delete-branch`, { stdio: 'inherit' });
+                console.log("PR merged successfully via direct merge.");
+            }
         } catch (error) {
             console.error(`Failed to approve/merge PR: ${error.message}`);
             process.exit(1);
