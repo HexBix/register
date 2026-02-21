@@ -60,8 +60,26 @@ try {
 
   let modified = false;
   for (const { status, filePath } of changed) {
-    const name = extractName(filePath);
+    let name = null;
+
+    if (status === 'A' || status === 'M') {
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const json = JSON.parse(content);
+        if (json.subdomain) {
+          name = json.subdomain.toLowerCase();
+        }
+      } catch (e) {
+        console.warn(`Failed to parse ${filePath}: ${e.message}`);
+      }
+    }
+
+    if (!name) {
+      name = extractName(filePath);
+    }
+
     if (!name) continue;
+
     if (status === 'A' || status === 'M') {
       // Set to pending if not active already
       if (map[name] !== 'active' && map[name] !== 'pending') {
