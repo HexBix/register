@@ -46,7 +46,7 @@ function writeListFile(listPath, map) {
 try {
   const baseRef = process.env.GITHUB_BASE_REF || 'main';
   try {
-    execSync(`git fetch origin ${baseRef} --depth=1`);
+    execSync(`git fetch origin ${baseRef}`);
   } catch {}
 
   const changed = getChangedDomainFiles(baseRef);
@@ -65,9 +65,13 @@ try {
     if (status === 'A' || status === 'M') {
       try {
         const content = fs.readFileSync(filePath, 'utf8');
-        const json = JSON.parse(content);
-        if (json.subdomain) {
-          name = json.subdomain.toLowerCase();
+        if (!content.trim()) {
+          console.warn(`File ${filePath} is empty.`);
+        } else {
+          const json = JSON.parse(content);
+          if (json.subdomain) {
+            name = json.subdomain.toLowerCase();
+          }
         }
       } catch (e) {
         console.warn(`Failed to parse ${filePath}: ${e.message}`);
@@ -78,7 +82,10 @@ try {
       name = extractName(filePath);
     }
 
-    if (!name) continue;
+    if (!name) {
+      console.warn(`Could not determine subdomain name for ${filePath}. Skipping.`);
+      continue;
+    }
 
     if (status === 'A' || status === 'M') {
       // Set to pending if not active already
