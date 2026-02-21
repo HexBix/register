@@ -26,11 +26,5 @@ jobs:
         run: node scripts/auto_review.js
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
-
-      - name: Approve and Merge Pull Request
-        if: steps.check.outputs.approve == 'true'
-        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr review ${{ github.event.pull_request.number }} --approve --body "Auto-approved: Changes verified."
-          gh pr merge ${{ github.event.pull_request.number }} --merge --delete-branch
