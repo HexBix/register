@@ -13,7 +13,7 @@ function verifySubdomainMatch(subdomain, filePath) {
     const fileNameSubdomain = fileName.split('.')[0];
 
     // Special cases that should bypass the subdomain match check. Important for the main domain and for email support
-    const specialCases = ["purelymail1._domainkey", "purelymail2._domainkey", "purelymail3._domainkey"];
+    const specialCases = ["_gh-is-app-top-o"];
 
     // Check if the subdomain is in the list of special cases
     if (specialCases.includes(subdomain.toLowerCase())) {
@@ -29,10 +29,10 @@ function verifySubdomainMatch(subdomain, filePath) {
 }
 
 function verifyFileFormat(fileName) {
-    const pattern = /^(@|_dmarc|[a-zA-Z0-9\-]+|purelymail[1-3]\._domainkey)\.is-app\.top\.json$/; // Expression to validate file name.
+    const pattern = /^(@|[a-zA-Z0-9\-]+)\.is-app\.top\.json$/; 
 
     // Special cases that should bypass the 4-part check. Important for the main domain and for email support
-    const specialCases = ["@", "_dmarc", "purelymail1._domainkey", "purelymail2._domainkey", "purelymail3._domainkey", "_gh-is-app-top-o"];
+    const specialCases = ["@", "_dmarc", "_gh-is-app-top-o"];
 
     // Check if the file name matches any of the special cases
     for (let i = 0; i < specialCases.length; i++) {
