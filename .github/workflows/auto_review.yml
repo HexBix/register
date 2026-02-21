@@ -3,6 +3,8 @@ name: Automatic Review
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'domains/**'
 
 jobs:
   auto-review:
@@ -39,6 +41,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Enable auto-merge
+        if: steps.check.outputs.approved == 'true'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GH_TOKEN }}
