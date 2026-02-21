@@ -1,0 +1,11 @@
+{
+  "subdomain": "_gh-is-app-top-o",
+  "domain": "is-app.top",
+  "email_or_discord": "admin@is-app.top",
+  "github_username": "williebenner",
+  "description": "Verify domain in Github",
+
+  "records": {
+    "TXT":   ["c289b6cc82"]
+  }
+}
