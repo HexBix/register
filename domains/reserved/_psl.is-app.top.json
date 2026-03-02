@@ -1,0 +1,13 @@
+{
+  "subdomain": "_psl",
+  "domain": "is-app.top",
+  "public_email": "contact@is-app.top",
+  "github_username": "is-app-top",
+  "description": "Reserved subdomain",
+  "records": {
+    "TXT": [
+      "https://github.com/publicsuffix/list/pull/2794"
+    ]
+  },
+  "proxied": false
+}
