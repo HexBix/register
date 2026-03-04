@@ -1,7 +1,5 @@
 {
   "dnspod": {
-    "TYPE": "DNSPOD",
-    "API_ID": "$DNSPOD_API_ID",
-    "API_TOKEN": "$DNSPOD_API_TOKEN"
+    "TYPE": "DNSPOD"
   }
 }
