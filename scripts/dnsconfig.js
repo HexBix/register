@@ -5,62 +5,58 @@ var DOMAIN_NAME = "is-app.top";
 function createSubdomainsObject(jsonsPath) {
   var domains = [];
   try {
-    var jsons = glob.apply(null, [jsonsPath, true, ".json"]);
-
+    var jsons = glob(jsonsPath, true, ".json");
     for (var i = 0; i < jsons.length; i++) {
-      try {
-        domains.push({ data: require(jsons[i]) });
-      } catch (e) {
-        console.error("Error loading JSON file:", jsons[i], e);
-      }
+      domains.push({ data: require(jsons[i]) });
     }
   } catch (e) {
-    console.error("Error finding JSON files:", jsonsPath, e);
+    console.error("Error loading JSON files:", e);
   }
-
   return domains;
 }
 
-var subdomains = createSubdomainsObject('../domains');
+var subdomains = createSubdomainsObject("../domains");
 var records = [];
 
 for (var i = 0; i < subdomains.length; i++) {
-  var subdomainData = subdomains[i].data;
-  var subdomain = subdomainData.subdomain;
+  var data = subdomains[i].data;
+  var sub = data.subdomain;
 
-  if (subdomainData.records.A) {
-    for (var ipv4 in subdomainData.records.A) {
-      records.push(A(subdomain, subdomainData.records.A[ipv4]));
-    }
+  if (!data.records) continue;
+
+  if (data.records.A) {
+    data.records.A.forEach(function (ip) {
+      records.push(A(sub, ip));
+    });
   }
 
-  if (subdomainData.records.AAAA) {
-    for (var ipv6 in subdomainData.records.AAAA) {
-      records.push(AAAA(subdomain, subdomainData.records.AAAA[ipv6]));
-    }
+  if (data.records.AAAA) {
+    data.records.AAAA.forEach(function (ip) {
+      records.push(AAAA(sub, ip));
+    });
   }
 
-  if (subdomainData.records.CNAME) {
-    records.push(CNAME(subdomain, subdomainData.records.CNAME + "."));
+  if (data.records.CNAME) {
+    records.push(CNAME(sub, data.records.CNAME + "."));
   }
 
-  if (subdomainData.records.NS) {
-    for (var ns in subdomainData.records.NS) {
-      records.push(NS(subdomain, subdomainData.records.NS[ns] + "."));
-    }
+  if (data.records.NS) {
+    data.records.NS.forEach(function (ns) {
+      records.push(NS(sub, ns + "."));
+    });
   }
 
-  if (subdomainData.records.MX) {
-    for (var mx in subdomainData.records.MX) {
-      records.push(MX(subdomain, 20, subdomainData.records.MX[mx] + "."));
-    }
+  if (data.records.MX) {
+    data.records.MX.forEach(function (mx) {
+      records.push(MX(sub, 20, mx + "."));
+    });
   }
 
-  if (subdomainData.records.TXT) {
-    for (var txt in subdomainData.records.TXT) {
-      records.push(TXT(subdomain, subdomainData.records.TXT[txt]));
-    }
+  if (data.records.TXT) {
+    data.records.TXT.forEach(function (txt) {
+      records.push(TXT(sub, txt));
+    });
   }
 }
 
-D(DOMAIN_NAME, REG_NONE, DnsProvider(DNS_PROVIDER), records);
+D(DOMAIN_NAME, REG_NONE, DNS_PROVIDER, records);
