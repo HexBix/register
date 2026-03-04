@@ -1,5 +1,5 @@
 var REG_NONE = NewRegistrar("none");
-var DNS_PROVIDER = NewDnsProvider("dnspod");
+
 var DOMAIN_NAME = "is-app.top";
 
 function createSubdomainsObject(jsonsPath) {
@@ -59,4 +59,9 @@ for (var i = 0; i < subdomains.length; i++) {
   }
 }
 
-D(DOMAIN_NAME, REG_NONE, DNS_PROVIDER, records);
+D(
+  DOMAIN_NAME,
+  REG_NONE,
+  DnsProvider("dnspod"),
+  records
+);
