@@ -1,5 +1,1 @@
-{
-  "dnspod": {
-    "TYPE": "DNSPOD"
-  }
-}
+{"cloudflare":{"TYPE":"CLOUDFLAREAPI","apitoken":"$CLOUDFLARE_API_TOKEN"}}
